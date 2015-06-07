@@ -1,287 +1,492 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <title>Test Node - Websocket - Guillaume pour Agence Verywell</title>
-		<style>
-			html
-			{
-			height: 100%;
-			}
+<!doctype html> 
+<html lang="en"> 
 
-			body
-			{
-			margin: 0;
-			padding: 0;
-			height: 100%;
-			}
-
-			/*Zone photos*/
-
-
-			#zone-photos
-			{
-			width: 966px;
-			height: 546px;
-			margin: 50px auto 0 auto;
-			position: relative;
-			}
-
-			#zone-photos ul
-			{
-			margin: 0;
-			padding: 0;
-			list-style: none;
-			height: 100%;
-			}
-
-			#zone-photos ul li
-			{
-			width: 50%;
-			float: left;
-			height: 50%;
-			}
-			
-			#zone-photos ul li video
-			{
-			width: 100%;
-			height: 100%;
-			}
-
-			#zone-photos ul li#tofsteve
-			{
-			background: #000000;
-			position:absolute;
-			top:0;
-			left:0;
-			}
-
-			#zone-photos ul li#tofsteve.active
-			{
-			z-index: 10;
-			}
-
-			#zone-photos ul li#tofpaul.active
-			{
-			z-index: 10;
-			}
-
-			#zone-photos ul li#toffanny.active
-			{
-			z-index: 10;
-			}
-
-			#zone-photos ul li#tofalex.active
-			{
-			z-index: 10;
-			}
-
-			#zone-photos ul li#tofpaul
-			{
-			background: #000000;
-			position:absolute;
-			right:0;
-			top:0;
-			}
-
-			#zone-photos ul li#toffanny
-			{
-			background: #000000;
-			position:absolute;
-			bottom:0;
-			left:0;
-			}
-
-			#zone-photos ul li#tofalex
-			{
-			background: #000000;
-			position:absolute;
-			right:0;
-			bottom:0;
-			}
-
-			/*Zone liens*/
-
-			#zone-liens
-			{
-			width: 100%;
-			height: 100%;
-			}
-
-			#zone-liens ul
-			{
-			margin: 0;
-			padding: 0;
-			height: 100%;
-			list-style: none;
-			}
-
-			#zone-liens ul li
-			{
-			float: left;
-			width: 50%;
-			height: 50%;
-			}
-
-			#zone-liens ul li a
-			{
-			display: block;
-			width: 100%;
-			height: 100%;
-			text-align: center;
-			font-size: 30px;
-			text-decoration: none;
-			}
-
-			#zone-liens ul li a#steve
-			{
-			background: #cccccc;
-			}
-
-			#zone-liens ul li a#paul
-			{
-			background: #14cccc;
-			}
-
-			#zone-liens ul li a#fanny
-			{
-			background: #c126cc;
-			}
-
-			#zone-liens ul li a#alex
-			{
-			background: #ccc222;
-			}
-
-
-			/*Gestion de l'affichage selon le device*/
-
-			@media (min-width: 900px)
-			{
-				#zone-liens
-				{
-				display: none;
-				}
-			}
-
-			@media (max-width: 900px)
-			{
-				#zone-photos
-				{
-				display: none;
-				}
-			}
-		</style>
-    </head>
- 
-    <body>
-	
-		<div id="zone-liens">
-			<ul>
-				<li>
-				<a href="#" id="steve">Nabilla</a></li>
-				<li><a href="#" id="paul">Nabilla 2</a></li>
-				<li><a href="#" id="fanny">Fart</a></li>
-				<li><a href="#" id="alex">Cat fail</a></li>
-			</ul>
-		</div>
+<head> 
+	<meta charset="UTF-8" />
+	<title>WellBall</title>
+	<script type="text/javascript" src="https://avw-app.fr/wellball/js/phaser.1.1.3.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+            background: #0F0F33;
+        }
+        #gameContainer {
+          width: 800px;
+          margin: 10px auto 0 auto;
+		  background-color: #1a3c68;
+		  margin-bottom: 70px;
+		  position: relative;
+		  z-index: 2;
+		  height: 546px !important;
+        }
 		
-		<div id="zone-photos">
-			<ul>
-				<li id="tofsteve">
-					<video id="video1">
-						<source src="https://avw-app.fr/video/nabilla.mp4" type="video/mp4">
-					</video>
-				</li>
-				<li id="tofpaul">
-					<video id="video2">
-						<source src="https://avw-app.fr/video/nabilla.mp4" type="video/mp4">
-					</video>
-				</li>
-				<li id="toffanny">
-					<video id="video3">
-						<source src="https://avw-app.fr/video/deer-fart.mp4" type="video/mp4">
-					</video>
-				</li>
-				<li id="tofalex">
-					<video id="video4">
-						<source src="https://avw-app.fr/video/cat-jump.mp4" type="video/mp4">
-					</video>
-				</li>
-			</ul>
-		</div>
+		canvas {
+		padding: 0;
+		background-color: #1a3c68;
+		margin-left: -2px;
+		margin-top: -3px;
+		margin-bottom: -1px;
+		}
+		
+		@media (max-width: 1150px)
+		{
+			#gameContainer {
+			{
+			display: none;
+			}
+		}
+		
+    
+    </style>
+</head>
+<body>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-		<script src="/socket.io/socket.io.js"></script>
-		<script>
-			var socket = io.connect();
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+var maxX=800, maxY=550;
+var game = new Phaser.Game(maxX, maxY, Phaser.AUTO, 'gameContainer');
 
-            // Lorsqu'on clique sur le bouton, on envoie le nom de la personne au serveur
-            $('#steve').click(function () {
-                socket.emit('steve');
-            });
+var gameplay = {
+  preload: function() {
+    game.load.image('background', 'https://avw-app.fr/wellball/assets/backgrounds/sky1_800_550.png');
+    game.load.spritesheet('platform', 'https://avw-app.fr/wellball/assets/platform_sprites_gb.png',64,3);
+    game.load.image('ball', 'https://avw-app.fr/wellball/assets/ball_small.png');
+
+    game.load.audio('levelUp', "https://avw-app.fr/wellball/assets/sounds/gmae.wav");
+    game.load.audio('music', 'https://avw-app.fr/wellball/assets/sounds/Harp.ogg');  
+    game.load.audio('bounce', 'https://avw-app.fr/wellball/assets/sounds/Jump%201.wav');  
+  },
+
+create: function() {
+    level=0; 
+    gameOver=false;
+    backgroundImage = game.add.sprite(0,0,'background');
+
+    game.stage.backgroundColor = '#1a3c68';
+    label1 = game.add.text(Math.floor(maxX/2), Math.floor(maxY/2)-20, levelLabels[level], { font: '90px Arial', fill: levelNamesColor });
+    label1.anchor.setTo(0.5, 0.5);
+    label1.scale.setTo(0, 0);
+    showHide(label1, levelLabels[level]);
+
+    levelUpSound = game.add.audio('levelUp');  
+    music = game.add.audio('music');
+    bounceSound = game.add.audio('bounce',0.3);
+    music.play('',0,1,true);
+
+    bounds = game.add.group();
+    var wall1 = game.add.sprite(0, 0, 'platform');
+    wall1.scale.x = 20;
+    bounds.add(wall1);
+    var wall2 = game.add.sprite(0, maxY-1, 'platform');
+    wall2.scale.x = 20;
+    bounds.add(wall2);
+    var wall3 = game.add.sprite(-5, 0, 'platform');
+    wall3.scale.x = 0.1;
+    wall3.scale.y = 200;
+    bounds.add(wall3);
+    var wall4 = game.add.sprite(maxX-1, 0, 'platform');
+    wall4.scale.x = 0.1;
+    wall4.scale.y = 200;
+    bounds.add(wall4);
+   //  The platforms group contains the ground and the 2 ledges we can jump on
+   platforms = game.add.group();
+
+   var levels=[
+       '..........',
+       '..........',
+       '..........',
+       '..........',
+       '..........',
+       '..........',
+       '..........',
+       'oooo..xxxx',
+       '....xx....',
+       'xxxx..xxxx',
+       '....xx....',
+       'xxxx..xxxx',
+       '....oo....',
+       '...xxxx...',
+       '..xxxxxx..',
+       'xx......xx',
+       '..xx..xx..',
+       '....xx....',//removed here
+       '..xx..xx..',
+       '........xx',
+       '......xx..',
+       '....xx....',
+       '..xx......',
+       'xx........',
+       '..oooooo..',
+       'xxxx..xxx.',
+       '........xx',
+       '.....xx...',
+       '..xx......',
+       'xx........',
+       '..xxxxxx..',
+       'xxxx..xxx.',
+       '........xx',
+       '.......xx.',
+       '......xx..',
+       '.....xx...',
+       '....oo....',
+       '...xx.....',
+       '..xx......',
+       '.xx.......',
+       'xx........',
+       '..XXXXXX..',
+       'xxxx..xxx.',
+       '........xx',
+       '....xx....',
+       'xx........',
+       '..........',
+       '..........',
+       '..........',
+       '.XX..XX..X',
+       'X..XX..XX.',
+       '.XX..XX..X',
+       'X..XX..XX.',
+       '.XX..XX..X',
+       'X..XX..oo.',
+       '.XX..XX..X',
+       'X..XX..XX.',
+       '.XX..XX..X',
+       'X..XX..XX.',
+       '..........',
+       '..........',
+       '..........',
+       '...XXXX...',        
+       'XXX....XXX',
+       '...XXXX...',
+       '..........',
+       '..........',
+       '...oooo...',
+       'XXX....XXX',
+       '...XXXX...',
+       '...xxxx...',
+       'XXX....XXX',
+       '...XXXX...',
+       '..........',
+       '..........',
+       '.X.X.X.X.X',                
+       'X.X.X.X.X.',
+       '.X.X.X.X.X',
+       'X.X.X.X.X.',
+       '.X.X.X.X.X',
+       'X.X.X.X.X.',
+       '.X.X.X.X.X',
+       'X.X.X.o.X.',
+       '.X.X.X.X.X',
+       'X.X.X.X.X.',
+       '..........',
+       '..........',
+       '..........',
+       '..........',
+       '..xxxxxx..',             
+       '..xx......',
+       '..oooo....',
+       '..xx......',
+       '..xxxxxx..',
+       '..........',
+       '..........',
+       '..xxx...x.',
+       '..xxxx..x.',
+       '..xx.xx.x.',
+       '..xx..xxx.',
+       '..xx...xx.',
+       '..........',
+       '..........',
+       '..xxxx....',
+       '..xx..xx..',
+       '..xx...xx.',
+       '..xx..xx..',
+       '..xxxx....',
+       '..........',
+       '..........',
+       'wwwwwwwwww'
+       ];
+   for (var i=0;i<levels.length;i++) {
+           paintLevel(levels[i],i);
+   }
+    // The player and its settings
+    player = game.add.sprite(playerInitX, playerInitY, 'ball');
+    
+    //  Player physics properties. Give the little guy a slight bounce.
+    player.body.bounce.y = 0.4; 
+    player.body.gravity.y = 9;
+    player.anchor.setTo(0.5, 0.5);
+    player.body.collideWorldBounds = true;
+
+    // keyboard and score
+    cursors = game.input.keyboard.createCursorKeys();
+    scoreText = game.add.text(16, 16, createScoreText(), { fontSize: '32px', fill: '#fff' });
+    progressText = game.add.text(16, 48, createProgressText(), { fontSize: '32px', fill: '#fff' });
+
+    platforms.forEach(initPlatform, this, true);
+  },
+
+  update: function() {
+    if (gameOver) {
+       if (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown ||cursors.down.isDown) {
+           restartGame();
+       }
+       return;
+    }
+   
+   var collide = game.physics.collide(player, platforms, collectPlatform);
+   if (!collide)
+     wasHit=false;
+
+   game.physics.overlap(player, bounds, death);
+
+    playerMoving=0;
+    if (player.body.preX>420) {
+            player.body.velocity.x=-5;
+    } else if (player.body.preX<380) {
+            player.body.velocity.x=5;
+    } else {
+            player.body.velocity.x=0;
+    }
+
+  if (cursors.left.isDown) {
+          movement = platfromsSpeed;
+  } else if (cursors.right.isDown) {
+          movement = -platfromsSpeed;
+  }
+  
+  /* Controle mobile */
+  
+  var socket = io.connect();
+  
+  if(window.DeviceMotionEvent) {
+  window.addEventListener('devicemotion', function(event) {
+
+			var x = event.accelerationIncludingGravity.x;
 			
-			$('#paul').click(function () {
-                socket.emit('paul');
-            });
+			/* En mode portrait */
+			if(x > 2) {
+				socket.emit('gauche');
+				
+			}
 			
-			$('#fanny').click(function () {
-                socket.emit('fanny');
-            });
-			
-			$('#alex').click(function () {
-                socket.emit('alex');
-            });
-			
-			// Quand le serveur envoi un nomclass on affiche la fiche
-            socket.on('steveclass', function() {
-				$( "#tofsteve" ).addClass( "active" );
-				$( "#tofpaul" ).removeClass( "active" );
-				$( "#toffanny" ).removeClass( "active" );
-				$( "#tofalex" ).removeClass( "active" );
-				$('#tofsteve').animate({height:'100%',width:'100%'}, 500);
-				$("#video1").trigger("play");
-				$('#video2').trigger('pause');
-				$('#video3').trigger('pause');
-				$('#video4').trigger('pause');
-            });
-			
-			socket.on('paulclass', function() {
-				$( "#tofpaul" ).addClass( "active" );
-				$( "#tofsteve" ).removeClass( "active" );
-				$( "#toffanny" ).removeClass( "active" );
-				$( "#tofalex" ).removeClass( "active" );
-				$('#tofpaul').animate({height:'100%',width:'100%'}, 500);
-				$("#video2").trigger("play");
-				$('#video1').trigger('pause');
-				$('#video3').trigger('pause');
-				$('#video4').trigger('pause');
-            });
-			
-			socket.on('fannyclass', function() {
-				$( "#toffanny" ).addClass( "active" );
-				$( "#tofpaul" ).removeClass( "active" );
-				$( "#tofsteve" ).removeClass( "active" );
-				$( "#tofalex" ).removeClass( "active" );
-				$('#toffanny').animate({height:'100%',width:'100%'}, 500);
-				$("#video3").trigger("play");
-				$('#video2').trigger('pause');
-				$('#video1').trigger('pause');
-				$('#video4').trigger('pause');
-            });
-			
-			socket.on('alexclass', function() {
-				$( "#tofalex" ).addClass( "active" );
-				$( "#tofpaul" ).removeClass( "active" );
-				$( "#toffanny" ).removeClass( "active" );
-				$( "#tofsteve" ).removeClass( "active" );
-				$('#tofalex').animate({height:'100%',width:'100%'}, 500);
-				$("#video4").trigger("play");
-				$('#video2').trigger('pause');
-				$('#video3').trigger('pause');
-				$('#video1').trigger('pause');
-            });
-		</script>
-    </body>
+			if(x < -2) {
+				socket.emit('droite');
+			}
+							
+		  });
+  }
+  
+	socket.on('gaucheclass', function() {
+		movement = -platfromsSpeed;
+	});
+	
+	socket.on('droiteclass', function() {
+		movement = platfromsSpeed;
+	});
+  
+  
+
+  if (player.body.velocity.x!=movement) {
+    playerMoving = (player.body.velocity.x - movement)/20;
+  } else {
+    playerMoving = 0;
+  }
+  player.angle += playerMoving;
+  platforms.forEach(updatePlatform, this, true);
+
+  if (cursors.up.isDown && player.body.touching.down) {
+    player.body.velocity.y = -350;
+  }
+  }
+};
+
+game.state.add('gameplay', gameplay);  
+game.state.start('gameplay');  
+
+var ground, platforms, bounds, backgroundImage, player, label1, music, levelUpSound, bounceSound, level=0, levelLabels=['Restez sur les plateformes', 'Les bords tuent', 'Niveau supérieur !', 'On accélère', 'Zone à risque', 'Cool!', 'Ça devient chaud', ':) Joli ! (:',  ':) Presque fini (:'];
+var score = 0, maxScore = loadMaxScore();
+var scoreText, progressText, levelNamesColor='#eabf7b';
+
+function showHide(label, text, callback, phaseLength) {
+    phaseLength=phaseLength ||1000;
+    label.content=text;
+    
+    var phaseOne=game.add.tween(label.scale);
+    phaseOne.to({x:1, y:1}, phaseLength);
+    phaseOne.onComplete.add(function(){
+        var phaseTwo =game.add.tween(label.scale);
+        phaseTwo.to({x:0, y:0}, phaseLength);
+        if ((callback !== undefined) && (callback !== null)) {
+          phaseTwo.onComplete.add(callback);
+        }
+        phaseTwo.start();
+    });
+
+    phaseOne.start();
+}
+
+function levelUp() {
+    level++;
+    progressText.content = createProgressText();
+    var nextLabel = level<levelLabels.length ? levelLabels[level] : '.,;iIi;,.';
+    levelUpSound.play();
+    showHide(label1, nextLabel);
+}
+
+var playerInitX=400, playerInitY=32;
+
+
+function createProgressText() {
+        return 'Niveau: '+(level+1) +'/'+levelLabels.length;
+}
+function paintLevel(level, height) {
+        for (var i=0;i<level.length;i++) {
+                var start = i;
+                if (level[i]!='.') {
+                    do {
+                        i++;
+                    } while (i<level.length && (level[i]!='.'))
+                    makePlatform(start,i,height, level[start]);
+                }
+        }
+}
+
+function makePlatform(from, to, height, kind) {
+       var initX = from*64, initY=64*height;
+       var ledge = platforms.create(initX, initY, 'platform');
+       ledge.scale.setTo(to-from, 1);
+       ledge.body.immovable = true;
+       ledge.kind = kind;
+       ledge.initX = initX;
+       ledge.initY = initY;
+       return ledge;
+}
+
+var movement = 0, playerMoving=0, platfromsSpeed = 130, platformVerticalSpeed=-40, platformVerticalSpeedSpeedUp=-1;
+
+function initPlatform(platform) {
+   platform.body.velocity.y = platformVerticalSpeed;
+}
+
+var wasHit=false;
+var hitFrame = 2;
+
+function collectPlatform(player, platform) {
+    if (platform.frame!=hitFrame) {
+        score += 1;
+        scoreText.content = createScoreText();
+    }
+    if (!wasHit) {
+            var veloLimit = 40;
+            if (player.body.velocity.y<veloLimit && player.body.velocity.y>-veloLimit) {
+              //  alert(player.body.velocity.y);
+            } else {
+                    bounceSound.play();
+            }
+    }
+    wasHit=true;
+    platform.frame=hitFrame;
+
+    if (platform.kind=='w') {
+     winningMoveActivated();
+    }
+}
+
+function createScoreText() {
+   var result = 'Score: ' + score;
+   if (maxScore!=0) {
+           result+='     Meilleur: ' + maxScore;
+   }
+   return result;
+}
+
+var gameOver=false;
+function death(player, bound) {
+        if (!gameOver) {
+          gameOver=true;
+          game.tweens.removeAll();
+          music.stop();
+          if (score>maxScore) {
+                  maxScore = score;
+                  saveMaxScore();
+          }
+          label1.content = 'Perdu !\nAppuyez pour rejouer';
+          label1.style.fill='#bc3350';
+          label1.scale.setTo(1, 1);
+
+          score=0;
+          var phaseOne=game.add.tween(label1.scale);
+          phaseOne.to({x:0, y:0}, 2000);
+          phaseOne.onComplete.add(function(){restartGame()});
+
+          phaseOne.start();
+        }
+     
+}
+
+function saveMaxScore() {
+    window.localStorage.setItem("highscore", JSON.stringify(maxScore)); 
+}
+function loadMaxScore() {
+    var state = window.localStorage.getItem("highscore"); 
+    if (state) { 
+        return JSON.parse(state); 
+    } else { 
+        return 0; 
+    } 
+    
+}
+function winningMoveActivated() {
+        if (!gameOver) {
+          gameOver=true;
+          game.tweens.removeAll();
+          music.stop();
+          if (score>maxScore)
+             maxScore = score;
+          label1.content = 'FINI!\nMaintenant... Plus vite !\nAppuyez pour continuer';
+          label1.style.fill='#bc3350';
+          label1.scale.setTo(0.5, 0.5);
+          platformVerticalSpeed+=platformVerticalSpeedSpeedUp;
+          platforms.forEach(function(platform){
+            platform.body.velocity.y=0;
+            var phaseOne=game.add.tween(platform.body);
+            phaseOne.to({x:platform.initX, y:platform.initY}, 1000);
+            phaseOne.start();
+          }, this, false);
+        }
+}
+
+function restartGame() {
+  game.tweens.removeAll();
+  music.stop();
+  platforms.forEach(function(platform){
+     platform.kill();
+  }, this, true);
+  player.kill();
+  backgroundImage.kill();
+  game.state.start('gameplay');
+}
+
+function roundToTwo(number) {
+        return parseFloat(Math.round(number * 100) / 100).toFixed(2);
+}
+
+function updatePlatform(platform) {
+        if (platform.body.y<-10) {
+            platform.kill();
+            if (platform.kind=='o') {
+                   levelUp();
+            }
+        } else {
+            platform.body.velocity.x = movement;
+        }
+}
+
+</script>
+
+
+<div id="gameContainer" style="width:797px;height:547px"> </div>
+
+</body>
+
 </html>
+
