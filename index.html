@@ -4,20 +4,23 @@
 <head> 
 	<meta charset="UTF-8" />
 	<title>WellBall</title>
+	<meta name="viewport" content="width=device-width">
 	<script type="text/javascript" src="https://avw-app.fr/wellball/js/phaser.1.1.3.min.js"></script>
+	<script type="text/javascript" src="https://avw-app.fr/wellball/js/jquery-1.11.3.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
-            background: #0F0F33;
+            background: #060606;
         }
         #gameContainer {
-          width: 800px;
+          width: 796px !important;
           margin: 10px auto 0 auto;
 		  background-color: #1a3c68;
 		  margin-bottom: 70px;
 		  position: relative;
 		  z-index: 2;
-		  height: 546px !important;
+		  height: 894px !important;
+		  border: 4px solid #ffffff;
         }
 		
 		canvas {
@@ -42,451 +45,450 @@
 <body>
 
 <script src="/socket.io/socket.io.js"></script>
+
 <script type="text/javascript">
-var maxX=800, maxY=550;
-var game = new Phaser.Game(maxX, maxY, Phaser.AUTO, 'gameContainer');
 
-var gameplay = {
-  preload: function() {
-    game.load.image('background', 'https://avw-app.fr/wellball/assets/backgrounds/sky1_800_550.png');
-    game.load.spritesheet('platform', 'https://avw-app.fr/wellball/assets/platform_sprites_gb.png',64,3);
-    game.load.image('ball', 'https://avw-app.fr/wellball/assets/ball_small.png');
+if ($(window).width() > 1100) {
 
-    game.load.audio('levelUp', "https://avw-app.fr/wellball/assets/sounds/gmae.wav");
-    game.load.audio('music', 'https://avw-app.fr/wellball/assets/sounds/Harp.ogg');  
-    game.load.audio('bounce', 'https://avw-app.fr/wellball/assets/sounds/Jump%201.wav');  
-  },
+	var maxX=800, maxY=900;
+	var game = new Phaser.Game(maxX, maxY, Phaser.AUTO, 'gameContainer');
 
-create: function() {
-    level=0; 
-    gameOver=false;
-    backgroundImage = game.add.sprite(0,0,'background');
+	var gameplay = {
+	  preload: function() {
+		/*game.load.image('background', 'https://avw-app.fr/wellball/assets/backgrounds/sky1_800_550.png');*/
+		game.load.spritesheet('platform', 'https://avw-app.fr/wellball/assets/platform_sprites_gb.png',64,3);
+		game.load.image('ball', 'https://avw-app.fr/wellball/assets/ball_small.png');
 
-    game.stage.backgroundColor = '#1a3c68';
-    label1 = game.add.text(Math.floor(maxX/2), Math.floor(maxY/2)-20, levelLabels[level], { font: '90px Arial', fill: levelNamesColor });
-    label1.anchor.setTo(0.5, 0.5);
-    label1.scale.setTo(0, 0);
-    showHide(label1, levelLabels[level]);
+		game.load.audio('levelUp', "https://avw-app.fr/wellball/assets/sounds/gmae.wav");
+		game.load.audio('music', 'https://avw-app.fr/wellball/assets/sounds/Harp.ogg');  
+		game.load.audio('bounce', 'https://avw-app.fr/wellball/assets/sounds/Jump%201.wav');  
+	  },
 
-    levelUpSound = game.add.audio('levelUp');  
-    music = game.add.audio('music');
-    bounceSound = game.add.audio('bounce',0.3);
-    music.play('',0,1,true);
+	create: function() {
+		level=0; 
+		gameOver=false;
+		/*backgroundImage = game.add.sprite(0,0,'background');*/
+		game.stage.backgroundColor = '#1A1D1C';
+		label1 = game.add.text(Math.floor(maxX/2), Math.floor(maxY/2)-20, levelLabels[level], { font: '90px Arial', fill: levelNamesColor });
+		label1.anchor.setTo(0.5, 0.5);
+		label1.scale.setTo(0, 0);
+		showHide(label1, levelLabels[level]);
 
-    bounds = game.add.group();
-    var wall1 = game.add.sprite(0, 0, 'platform');
-    wall1.scale.x = 20;
-    bounds.add(wall1);
-    var wall2 = game.add.sprite(0, maxY-1, 'platform');
-    wall2.scale.x = 20;
-    bounds.add(wall2);
-    var wall3 = game.add.sprite(-5, 0, 'platform');
-    wall3.scale.x = 0.1;
-    wall3.scale.y = 200;
-    bounds.add(wall3);
-    var wall4 = game.add.sprite(maxX-1, 0, 'platform');
-    wall4.scale.x = 0.1;
-    wall4.scale.y = 200;
-    bounds.add(wall4);
-   //  The platforms group contains the ground and the 2 ledges we can jump on
-   platforms = game.add.group();
+		levelUpSound = game.add.audio('levelUp');  
+		music = game.add.audio('music');
+		bounceSound = game.add.audio('bounce',0.3);
+		music.play('',0,1,true);
 
-   var levels=[
-       '..........',
-       '..........',
-       '..........',
-       '..........',
-       '..........',
-       '..........',
-       '..........',
-       'oooo..xxxx',
-       '....xx....',
-       'xxxx..xxxx',
-       '....xx....',
-       'xxxx..xxxx',
-       '....oo....',
-       '...xxxx...',
-       '..xxxxxx..',
-       'xx......xx',
-       '..xx..xx..',
-       '....xx....',//removed here
-       '..xx..xx..',
-       '........xx',
-       '......xx..',
-       '....xx....',
-       '..xx......',
-       'xx........',
-       '..oooooo..',
-       'xxxx..xxx.',
-       '........xx',
-       '.....xx...',
-       '..xx......',
-       'xx........',
-       '..xxxxxx..',
-       'xxxx..xxx.',
-       '........xx',
-       '.......xx.',
-       '......xx..',
-       '.....xx...',
-       '....oo....',
-       '...xx.....',
-       '..xx......',
-       '.xx.......',
-       'xx........',
-       '..XXXXXX..',
-       'xxxx..xxx.',
-       '........xx',
-       '....xx....',
-       'xx........',
-       '..........',
-       '..........',
-       '..........',
-       '.XX..XX..X',
-       'X..XX..XX.',
-       '.XX..XX..X',
-       'X..XX..XX.',
-       '.XX..XX..X',
-       'X..XX..oo.',
-       '.XX..XX..X',
-       'X..XX..XX.',
-       '.XX..XX..X',
-       'X..XX..XX.',
-       '..........',
-       '..........',
-       '..........',
-       '...XXXX...',        
-       'XXX....XXX',
-       '...XXXX...',
-       '..........',
-       '..........',
-       '...oooo...',
-       'XXX....XXX',
-       '...XXXX...',
-       '...xxxx...',
-       'XXX....XXX',
-       '...XXXX...',
-       '..........',
-       '..........',
-       '.X.X.X.X.X',                
-       'X.X.X.X.X.',
-       '.X.X.X.X.X',
-       'X.X.X.X.X.',
-       '.X.X.X.X.X',
-       'X.X.X.X.X.',
-       '.X.X.X.X.X',
-       'X.X.X.o.X.',
-       '.X.X.X.X.X',
-       'X.X.X.X.X.',
-       '..........',
-       '..........',
-       '..........',
-       '..........',
-       '..xxxxxx..',             
-       '..xx......',
-       '..oooo....',
-       '..xx......',
-       '..xxxxxx..',
-       '..........',
-       '..........',
-       '..xxx...x.',
-       '..xxxx..x.',
-       '..xx.xx.x.',
-       '..xx..xxx.',
-       '..xx...xx.',
-       '..........',
-       '..........',
-       '..xxxx....',
-       '..xx..xx..',
-       '..xx...xx.',
-       '..xx..xx..',
-       '..xxxx....',
-       '..........',
-       '..........',
-       'wwwwwwwwww'
-       ];
-   for (var i=0;i<levels.length;i++) {
-           paintLevel(levels[i],i);
-   }
-    // The player and its settings
-    player = game.add.sprite(playerInitX, playerInitY, 'ball');
-    
-    //  Player physics properties. Give the little guy a slight bounce.
-    player.body.bounce.y = 0.4; 
-    player.body.gravity.y = 9;
-    player.anchor.setTo(0.5, 0.5);
-    player.body.collideWorldBounds = true;
+		bounds = game.add.group();
+		var wall1 = game.add.sprite(0, 0, 'platform');
+		wall1.scale.x = 20;
+		bounds.add(wall1);
+		var wall2 = game.add.sprite(0, maxY-1, 'platform');
+		wall2.scale.x = 20;
+		bounds.add(wall2);
+		var wall3 = game.add.sprite(-5, 0, 'platform');
+		wall3.scale.x = 0.1;
+		wall3.scale.y = 200;
+		bounds.add(wall3);
+		var wall4 = game.add.sprite(maxX-1, 0, 'platform');
+		wall4.scale.x = 0.1;
+		wall4.scale.y = 200;
+		bounds.add(wall4);
+	   //  The platforms group contains the ground and the 2 ledges we can jump on
+	   platforms = game.add.group();
 
-    // keyboard and score
-    cursors = game.input.keyboard.createCursorKeys();
-    scoreText = game.add.text(16, 16, createScoreText(), { fontSize: '32px', fill: '#fff' });
-    progressText = game.add.text(16, 48, createProgressText(), { fontSize: '32px', fill: '#fff' });
+	   var levels=[
+		   '..........',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '..........',
+		   'oooo..xxxx',
+		   '....xx....',
+		   'xxxx..xxxx',
+		   '....xx....',
+		   'xxxx..xxxx',
+		   '....oo....',
+		   '...xxxx...',
+		   '..xxxxxx..',
+		   'xx......xx',
+		   '..xx..xx..',
+		   '....xx....',//removed here
+		   '..xx..xx..',
+		   '........xx',
+		   '......xx..',
+		   '....xx....',
+		   '..xx......',
+		   'xx........',
+		   '..oooooo..',
+		   'xxxx..xxx.',
+		   '........xx',
+		   '.....xx...',
+		   '..xx......',
+		   'xx........',
+		   '..xxxxxx..',
+		   'xxxx..xxx.',
+		   '........xx',
+		   '.......xx.',
+		   '......xx..',
+		   '.....xx...',
+		   '....oo....',
+		   '...xx.....',
+		   '..xx......',
+		   '.xx.......',
+		   'xx........',
+		   '..XXXXXX..',
+		   'xxxx..xxx.',
+		   '........xx',
+		   '....xx....',
+		   'xx........',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '.XX..XX..X',
+		   'X..XX..XX.',
+		   '.XX..XX..X',
+		   'X..XX..XX.',
+		   '.XX..XX..X',
+		   'X..XX..oo.',
+		   '.XX..XX..X',
+		   'X..XX..XX.',
+		   '.XX..XX..X',
+		   'X..XX..XX.',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '...XXXX...',        
+		   'XXX....XXX',
+		   '...XXXX...',
+		   '..........',
+		   '..........',
+		   '...oooo...',
+		   'XXX....XXX',
+		   '...XXXX...',
+		   '...xxxx...',
+		   'XXX....XXX',
+		   '...XXXX...',
+		   '..........',
+		   '..........',
+		   '.X.X.X.X.X',                
+		   'X.X.X.X.X.',
+		   '.X.X.X.X.X',
+		   'X.X.X.X.X.',
+		   '.X.X.X.X.X',
+		   'X.X.X.X.X.',
+		   '.X.X.X.X.X',
+		   'X.X.X.o.X.',
+		   '.X.X.X.X.X',
+		   'X.X.X.X.X.',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '..........',
+		   '..xxxxxx..',             
+		   '..xx......',
+		   '..oooo....',
+		   '..xx......',
+		   '..xxxxxx..',
+		   '..........',
+		   '..........',
+		   '..xxx...x.',
+		   '..xxxx..x.',
+		   '..xx.xx.x.',
+		   '..xx..xxx.',
+		   '..xx...xx.',
+		   '..........',
+		   '..........',
+		   '..xxxx....',
+		   '..xx..xx..',
+		   '..xx...xx.',
+		   '..xx..xx..',
+		   '..xxxx....',
+		   '..........',
+		   '..........',
+		   'wwwwwwwwww'
+		   ];
+	   for (var i=0;i<levels.length;i++) {
+			   paintLevel(levels[i],i);
+	   }
+		// The player and its settings
+		player = game.add.sprite(playerInitX, playerInitY, 'ball');
+		
+		//  Player physics properties. Give the little guy a slight bounce.
+		player.body.bounce.y = 0.4; 
+		player.body.gravity.y = 9;
+		player.anchor.setTo(0.5, 0.5);
+		player.body.collideWorldBounds = true;
 
-    platforms.forEach(initPlatform, this, true);
-  },
+		// keyboard and score
+		cursors = game.input.keyboard.createCursorKeys();
+		scoreText = game.add.text(16, 16, createScoreText(), { fontSize: '32px', fill: '#fff' });
+		progressText = game.add.text(16, 48, createProgressText(), { fontSize: '32px', fill: '#fff' });
 
-  update: function() {
-    if (gameOver) {
-       if (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown ||cursors.down.isDown) {
-           restartGame();
-       }
-       return;
-    }
-   
-   var collide = game.physics.collide(player, platforms, collectPlatform);
-   if (!collide)
-     wasHit=false;
+		platforms.forEach(initPlatform, this, true);
+	  },
 
-   game.physics.overlap(player, bounds, death);
+	  update: function() {
+		if (gameOver) {
+		   if (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown ||cursors.down.isDown) {
+			   restartGame();
+		   }
+		   return;
+		}
+	   
+	   var collide = game.physics.collide(player, platforms, collectPlatform);
+	   if (!collide)
+		 wasHit=false;
 
-    playerMoving=0;
-    if (player.body.preX>420) {
-            player.body.velocity.x=-5;
-    } else if (player.body.preX<380) {
-            player.body.velocity.x=5;
-    } else {
-            player.body.velocity.x=0;
-    }
+	   game.physics.overlap(player, bounds, death);
 
-  if (cursors.left.isDown) {
-          movement = platfromsSpeed;
-  } else if (cursors.right.isDown) {
-          movement = -platfromsSpeed;
-  }
-  
-  /* Controle mobile */
-  
-  var socket = io.connect();
-  
-  if(window.DeviceMotionEvent) {
-  window.addEventListener('devicemotion', function(event) {
+		playerMoving=0;
+		if (player.body.preX>420) {
+				player.body.velocity.x=-5;
+		} else if (player.body.preX<380) {
+				player.body.velocity.x=5;
+		} else {
+				player.body.velocity.x=0;
+		}
 
-			var x = event.accelerationIncludingGravity.x;
-			
-			/* En mode portrait */
-			if(x > 2) {
-				socket.emit('gauche');
-				
+	  if (cursors.left.isDown) {
+			  movement = platfromsSpeed;
+	  } else if (cursors.right.isDown) {
+			  movement = -platfromsSpeed;
+	  }
+
+	  if (player.body.velocity.x!=movement) {
+		playerMoving = (player.body.velocity.x - movement)/20;
+	  } else {
+		playerMoving = 0;
+	  }
+	  player.angle += playerMoving;
+	  platforms.forEach(updatePlatform, this, true);
+
+	  if (cursors.up.isDown && player.body.touching.down) {
+		player.body.velocity.y = -350;
+	  }
+	  }
+	};
+
+	game.state.add('gameplay', gameplay);  
+	game.state.start('gameplay');  
+
+	var ground, platforms, bounds, /*backgroundImage,*/ player, label1, music, levelUpSound, bounceSound, level=0, levelLabels=['Restez sur les plateformes', 'Les bords tuent', 'Niveau supérieur !', 'On accélère', 'Zone à risque', 'Cool!', 'Ça devient chaud', ':) Joli ! (:',  ':) Presque fini (:'];
+	var score = 0, maxScore = loadMaxScore();
+	var scoreText, progressText, levelNamesColor='#eabf7b';
+
+	function showHide(label, text, callback, phaseLength) {
+		phaseLength=phaseLength ||1000;
+		label.content=text;
+		
+		var phaseOne=game.add.tween(label.scale);
+		phaseOne.to({x:1, y:1}, phaseLength);
+		phaseOne.onComplete.add(function(){
+			var phaseTwo =game.add.tween(label.scale);
+			phaseTwo.to({x:0, y:0}, phaseLength);
+			if ((callback !== undefined) && (callback !== null)) {
+			  phaseTwo.onComplete.add(callback);
 			}
-			
-			if(x < -2) {
-				socket.emit('droite');
+			phaseTwo.start();
+		});
+
+		phaseOne.start();
+	}
+
+	function levelUp() {
+		level++;
+		progressText.content = createProgressText();
+		var nextLabel = level<levelLabels.length ? levelLabels[level] : '.,;iIi;,.';
+		levelUpSound.play();
+		showHide(label1, nextLabel);
+	}
+
+	var playerInitX=200, playerInitY=32;
+
+
+	function createProgressText() {
+			return 'Niveau: '+(level+1) +'/'+levelLabels.length;
+	}
+	function paintLevel(level, height) {
+			for (var i=0;i<level.length;i++) {
+					var start = i;
+					if (level[i]!='.') {
+						do {
+							i++;
+						} while (i<level.length && (level[i]!='.'))
+						makePlatform(start,i,height, level[start]);
+					}
 			}
-							
-		  });
-  }
-  
-	socket.on('gaucheclass', function() {
-		movement = -platfromsSpeed;
-	});
+	}
+
+	function makePlatform(from, to, height, kind) {
+		   var initX = from*64, initY=64*height;
+		   var ledge = platforms.create(initX, initY, 'platform');
+		   ledge.scale.setTo(to-from, 1);
+		   ledge.body.immovable = true;
+		   ledge.kind = kind;
+		   ledge.initX = initX;
+		   ledge.initY = initY;
+		   return ledge;
+	}
+
+	var movement = 0, playerMoving=0, platfromsSpeed = 130, platformVerticalSpeed=-40, platformVerticalSpeedSpeedUp=-1;
+
+	function initPlatform(platform) {
+	   platform.body.velocity.y = platformVerticalSpeed;
+	}
+
+	var wasHit=false;
+	var hitFrame = 2;
+
+	function collectPlatform(player, platform) {
+		if (platform.frame!=hitFrame) {
+			score += 1;
+			scoreText.content = createScoreText();
+		}
+		if (!wasHit) {
+				var veloLimit = 40;
+				if (player.body.velocity.y<veloLimit && player.body.velocity.y>-veloLimit) {
+				  //  alert(player.body.velocity.y);
+				} else {
+						bounceSound.play();
+				}
+		}
+		wasHit=true;
+		platform.frame=hitFrame;
+
+		if (platform.kind=='w') {
+		 winningMoveActivated();
+		}
+	}
+
+	function createScoreText() {
+	   var result = 'Score: ' + score;
+	   if (maxScore!=0) {
+			   result+='     Meilleur: ' + maxScore;
+	   }
+	   return result;
+	}
+
+	var gameOver=false;
+	function death(player, bound) {
+			if (!gameOver) {
+			  gameOver=true;
+			  game.tweens.removeAll();
+			  music.stop();
+			  if (score>maxScore) {
+					  maxScore = score;
+					  saveMaxScore();
+			  }
+			  label1.content = 'Perdu !\nAppuyez pour rejouer';
+			  label1.style.fill='#bc3350';
+			  label1.scale.setTo(1, 1);
+
+			  score=0;
+			  var phaseOne=game.add.tween(label1.scale);
+			  phaseOne.to({x:0, y:0}, 2000);
+			  phaseOne.onComplete.add(function(){restartGame()});
+
+			  phaseOne.start();
+			}
+		 
+	}
+
+	function saveMaxScore() {
+		window.localStorage.setItem("highscore", JSON.stringify(maxScore)); 
+	}
+	function loadMaxScore() {
+		var state = window.localStorage.getItem("highscore"); 
+		if (state) { 
+			return JSON.parse(state); 
+		} else { 
+			return 0; 
+		} 
+		
+	}
+	function winningMoveActivated() {
+			if (!gameOver) {
+			  gameOver=true;
+			  game.tweens.removeAll();
+			  music.stop();
+			  if (score>maxScore)
+				 maxScore = score;
+			  label1.content = 'FINI!\nMaintenant... Plus vite !\nAppuyez pour continuer';
+			  label1.style.fill='#bc3350';
+			  label1.scale.setTo(0.5, 0.5);
+			  platformVerticalSpeed+=platformVerticalSpeedSpeedUp;
+			  platforms.forEach(function(platform){
+				platform.body.velocity.y=0;
+				var phaseOne=game.add.tween(platform.body);
+				phaseOne.to({x:platform.initX, y:platform.initY}, 1000);
+				phaseOne.start();
+			  }, this, false);
+			}
+	}
+
+	function restartGame() {
+	  game.tweens.removeAll();
+	  music.stop();
+	  platforms.forEach(function(platform){
+		 platform.kill();
+	  }, this, true);
+	  player.kill();
+	  backgroundImage.kill();
+	  game.state.start('gameplay');
+	}
+
+	function roundToTwo(number) {
+			return parseFloat(Math.round(number * 100) / 100).toFixed(2);
+	}
+
+	function updatePlatform(platform) {
+			if (platform.body.y<-10) {
+				platform.kill();
+				if (platform.kind=='o') {
+					   levelUp();
+				}
+			} else {
+				platform.body.velocity.x = movement;
+			}
+	}
 	
-	socket.on('droiteclass', function() {
-		movement = platfromsSpeed;
-	});
-  
-  
-
-  if (player.body.velocity.x!=movement) {
-    playerMoving = (player.body.velocity.x - movement)/20;
-  } else {
-    playerMoving = 0;
-  }
-  player.angle += playerMoving;
-  platforms.forEach(updatePlatform, this, true);
-
-  if (cursors.up.isDown && player.body.touching.down) {
-    player.body.velocity.y = -350;
-  }
-  }
-};
-
-game.state.add('gameplay', gameplay);  
-game.state.start('gameplay');  
-
-var ground, platforms, bounds, backgroundImage, player, label1, music, levelUpSound, bounceSound, level=0, levelLabels=['Restez sur les plateformes', 'Les bords tuent', 'Niveau supérieur !', 'On accélère', 'Zone à risque', 'Cool!', 'Ça devient chaud', ':) Joli ! (:',  ':) Presque fini (:'];
-var score = 0, maxScore = loadMaxScore();
-var scoreText, progressText, levelNamesColor='#eabf7b';
-
-function showHide(label, text, callback, phaseLength) {
-    phaseLength=phaseLength ||1000;
-    label.content=text;
-    
-    var phaseOne=game.add.tween(label.scale);
-    phaseOne.to({x:1, y:1}, phaseLength);
-    phaseOne.onComplete.add(function(){
-        var phaseTwo =game.add.tween(label.scale);
-        phaseTwo.to({x:0, y:0}, phaseLength);
-        if ((callback !== undefined) && (callback !== null)) {
-          phaseTwo.onComplete.add(callback);
-        }
-        phaseTwo.start();
-    });
-
-    phaseOne.start();
 }
 
-function levelUp() {
-    level++;
-    progressText.content = createProgressText();
-    var nextLabel = level<levelLabels.length ? levelLabels[level] : '.,;iIi;,.';
-    levelUpSound.play();
-    showHide(label1, nextLabel);
+/* Controle mobile */
+var socket = io.connect();
+
+if(window.DeviceMotionEvent) {
+window.addEventListener('devicemotion', function(event) {
+
+		var y = event.accelerationIncludingGravity.y;
+		
+		/* En mode portrait */
+		if(y > 2) {
+			socket.emit('gauche');
+		}
+		
+		if(y < -2) {
+			socket.emit('droite');
+		}
+						
+	  });
 }
 
-var playerInitX=400, playerInitY=32;
+socket.on('gaucheclass', function() {
+	movement = -platfromsSpeed;
+});
 
-
-function createProgressText() {
-        return 'Niveau: '+(level+1) +'/'+levelLabels.length;
-}
-function paintLevel(level, height) {
-        for (var i=0;i<level.length;i++) {
-                var start = i;
-                if (level[i]!='.') {
-                    do {
-                        i++;
-                    } while (i<level.length && (level[i]!='.'))
-                    makePlatform(start,i,height, level[start]);
-                }
-        }
-}
-
-function makePlatform(from, to, height, kind) {
-       var initX = from*64, initY=64*height;
-       var ledge = platforms.create(initX, initY, 'platform');
-       ledge.scale.setTo(to-from, 1);
-       ledge.body.immovable = true;
-       ledge.kind = kind;
-       ledge.initX = initX;
-       ledge.initY = initY;
-       return ledge;
-}
-
-var movement = 0, playerMoving=0, platfromsSpeed = 130, platformVerticalSpeed=-40, platformVerticalSpeedSpeedUp=-1;
-
-function initPlatform(platform) {
-   platform.body.velocity.y = platformVerticalSpeed;
-}
-
-var wasHit=false;
-var hitFrame = 2;
-
-function collectPlatform(player, platform) {
-    if (platform.frame!=hitFrame) {
-        score += 1;
-        scoreText.content = createScoreText();
-    }
-    if (!wasHit) {
-            var veloLimit = 40;
-            if (player.body.velocity.y<veloLimit && player.body.velocity.y>-veloLimit) {
-              //  alert(player.body.velocity.y);
-            } else {
-                    bounceSound.play();
-            }
-    }
-    wasHit=true;
-    platform.frame=hitFrame;
-
-    if (platform.kind=='w') {
-     winningMoveActivated();
-    }
-}
-
-function createScoreText() {
-   var result = 'Score: ' + score;
-   if (maxScore!=0) {
-           result+='     Meilleur: ' + maxScore;
-   }
-   return result;
-}
-
-var gameOver=false;
-function death(player, bound) {
-        if (!gameOver) {
-          gameOver=true;
-          game.tweens.removeAll();
-          music.stop();
-          if (score>maxScore) {
-                  maxScore = score;
-                  saveMaxScore();
-          }
-          label1.content = 'Perdu !\nAppuyez pour rejouer';
-          label1.style.fill='#bc3350';
-          label1.scale.setTo(1, 1);
-
-          score=0;
-          var phaseOne=game.add.tween(label1.scale);
-          phaseOne.to({x:0, y:0}, 2000);
-          phaseOne.onComplete.add(function(){restartGame()});
-
-          phaseOne.start();
-        }
-     
-}
-
-function saveMaxScore() {
-    window.localStorage.setItem("highscore", JSON.stringify(maxScore)); 
-}
-function loadMaxScore() {
-    var state = window.localStorage.getItem("highscore"); 
-    if (state) { 
-        return JSON.parse(state); 
-    } else { 
-        return 0; 
-    } 
-    
-}
-function winningMoveActivated() {
-        if (!gameOver) {
-          gameOver=true;
-          game.tweens.removeAll();
-          music.stop();
-          if (score>maxScore)
-             maxScore = score;
-          label1.content = 'FINI!\nMaintenant... Plus vite !\nAppuyez pour continuer';
-          label1.style.fill='#bc3350';
-          label1.scale.setTo(0.5, 0.5);
-          platformVerticalSpeed+=platformVerticalSpeedSpeedUp;
-          platforms.forEach(function(platform){
-            platform.body.velocity.y=0;
-            var phaseOne=game.add.tween(platform.body);
-            phaseOne.to({x:platform.initX, y:platform.initY}, 1000);
-            phaseOne.start();
-          }, this, false);
-        }
-}
-
-function restartGame() {
-  game.tweens.removeAll();
-  music.stop();
-  platforms.forEach(function(platform){
-     platform.kill();
-  }, this, true);
-  player.kill();
-  backgroundImage.kill();
-  game.state.start('gameplay');
-}
-
-function roundToTwo(number) {
-        return parseFloat(Math.round(number * 100) / 100).toFixed(2);
-}
-
-function updatePlatform(platform) {
-        if (platform.body.y<-10) {
-            platform.kill();
-            if (platform.kind=='o') {
-                   levelUp();
-            }
-        } else {
-            platform.body.velocity.x = movement;
-        }
-}
+socket.on('droiteclass', function() {
+	movement = platfromsSpeed;
+});
 
 </script>
 
-
-<div id="gameContainer" style="width:797px;height:547px"> </div>
+<div id="gameContainer" style="width:800px;height:900px"> </div>
 
 </body>
 
 </html>
-
