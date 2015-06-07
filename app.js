@@ -21,14 +21,14 @@ app.get('/', function (req, res) {
 io.sockets.on('connection', function (socket) {
 
     // Dès qu'on reçoit un "steve" on renvoit a tous un classsteve
-    socket.on('steve', function () {
+    socket.on('gauche', function () {
 		// On signale aux autres clients qu'il y a un nouveau venu
-		socket.broadcast.emit('steveclass');
+		socket.broadcast.emit('gaucheclass');
     }); 
 	
-	socket.on('paul', function () {
+	socket.on('droite', function () {
 		// On signale aux autres clients qu'il y a un nouveau venu
-		socket.broadcast.emit('paulclass');
+		socket.broadcast.emit('droiteclass');
     }); 
 	
 	socket.on('fanny', function () {
